@@ -5,11 +5,13 @@
 
 import Link from "next/link"
 import { useEffect, useState } from "react"
+import { toast } from "sonner"
 
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { BrandTable } from "@/components/ui/brands/brand-table"
-import { ambilDaftarBrand } from "@/lib/api/brands"
+import { DialogArsipBrand } from "@/components/ui/brands/dialog-arsip-brand"
+import { ambilDaftarBrand, arsipkanBrand, pulihkanBrand } from "@/lib/api/brands"
 import { GalatApi, GalatJaringan } from "@/lib/apiclient"
 import type { Brand } from "@/lib/types"
 
@@ -18,6 +20,16 @@ import type { Brand } from "@/lib/types"
 // dari daftar yang panjangnya nol saat kondisinya "berhasil".
 type Kondisi = "memuat" | "berhasil" | "galat"
 
+// Mengambil pesan yang aman ditampilkan dari sebuah galat. GalatJaringan dan GalatApi
+// membawa pesan berbahasa Indonesia. Galat lain diganti pesan umum supaya detail
+// teknis tidak bocor ke layar.
+function pesanDariGalat(galat: unknown): string {
+  if (galat instanceof GalatJaringan || galat instanceof GalatApi) {
+    return galat.message
+  }
+  return "Terjadi kesalahan yang tidak terduga. Silakan coba lagi."
+}
+
 export default function HalamanDaftarBrand() {
   // Daftar brand dari API. Awalnya kosong sampai data tiba.
   const [daftar, setDaftar] = useState<Brand[]>([])
@@ -25,12 +37,18 @@ export default function HalamanDaftarBrand() {
   // Kondisi awal "memuat" supaya skeleton langsung tampil saat halaman dibuka.
   const [kondisi, setKondisi] = useState<Kondisi>("memuat")
 
-  // Pesan yang ditampilkan ke pengguna kalau pemanggilan gagal.
+  // Pesan yang ditampilkan ke pengguna kalau pemuatan daftar gagal.
   const [pesanGalat, setPesanGalat] = useState("")
 
-  // Penghitung percobaan. Setiap nilainya berubah, efek di bawah berjalan ulang.
-  // Dipakai tombol "Coba lagi" supaya data dimuat ulang.
+  // Penghitung muat ulang. Setiap nilainya berubah, efek di bawah berjalan ulang.
+  // Dipakai tombol "Coba lagi" dan juga setelah arsip atau pulihkan berhasil.
   const [percobaan, setPercobaan] = useState(0)
+
+  // Brand yang sedang menunggu konfirmasi arsip. Null berarti dialog tertutup.
+  const [brandAkanDiarsipkan, setBrandAkanDiarsipkan] = useState<Brand | null>(null)
+
+  // Id brand yang sedang diarsipkan atau dipulihkan. Null kalau tidak ada.
+  const [idSedangDiproses, setIdSedangDiproses] = useState<number | null>(null)
 
   useEffect(() => {
     // Penanda untuk menghentikan pembaruan state kalau halaman sudah ditinggalkan
@@ -42,22 +60,12 @@ export default function HalamanDaftarBrand() {
         if (dibatalkan) return
 
         // "?? []" berarti pakai daftar kosong kalau data bernilai null atau tidak ada.
-        // API saat ini mengirim "data": null untuk daftar kosong. Ini pengaman
-        // di sisi Frontend.
         setDaftar(respons.data ?? [])
         setKondisi("berhasil")
       })
       .catch((galat: unknown) => {
         if (dibatalkan) return
-
-        // GalatJaringan dan GalatApi sama-sama membawa pesan berbahasa Indonesia
-        // yang aman ditampilkan. Galat lain diganti pesan umum supaya detail
-        // teknis tidak bocor ke layar.
-        if (galat instanceof GalatJaringan || galat instanceof GalatApi) {
-          setPesanGalat(galat.message)
-        } else {
-          setPesanGalat("Terjadi kesalahan yang tidak terduga. Silakan coba lagi.")
-        }
+        setPesanGalat(pesanDariGalat(galat))
         setKondisi("galat")
       })
 
@@ -71,6 +79,44 @@ export default function HalamanDaftarBrand() {
   function cobaLagi() {
     setKondisi("memuat")
     setPercobaan((nilai) => nilai + 1)
+  }
+
+  // Dipanggil saat pengguna menekan "Ya, arsipkan" di dialog.
+  async function konfirmasiArsip() {
+    if (brandAkanDiarsipkan === null) return
+    const brand = brandAkanDiarsipkan
+
+    setIdSedangDiproses(brand.id)
+    try {
+      await arsipkanBrand(brand.id)
+      toast.success("Brand berhasil diarsipkan")
+      setBrandAkanDiarsipkan(null)
+
+      // Muat ulang daftar tanpa menampilkan skeleton (kondisi tidak diubah ke "memuat"),
+      // supaya tabel tidak berkedip.
+      setPercobaan((nilai) => nilai + 1)
+    } catch (galat: unknown) {
+      // Dialog dibiarkan terbuka supaya pengguna bisa mencoba lagi.
+      toast.error(pesanDariGalat(galat))
+    } finally {
+      // Selalu dijalankan, berhasil atau gagal, supaya tombol aktif kembali.
+      setIdSedangDiproses(null)
+    }
+  }
+
+  // Dipanggil tombol "Pulihkan" di tabel. Brief hanya mewajibkan konfirmasi untuk
+  // arsip, jadi pulihkan langsung berjalan.
+  async function pulihkan(brand: Brand) {
+    setIdSedangDiproses(brand.id)
+    try {
+      await pulihkanBrand(brand.id)
+      toast.success("Brand berhasil dipulihkan")
+      setPercobaan((nilai) => nilai + 1)
+    } catch (galat: unknown) {
+      toast.error(pesanDariGalat(galat))
+    } finally {
+      setIdSedangDiproses(null)
+    }
   }
 
   return (
@@ -115,10 +161,24 @@ export default function HalamanDaftarBrand() {
         </div>
       )}
 
-      {/* Kondisi berhasil dan ada data: tabel hanya menampilkan data dari props. */}
+      {/* Kondisi berhasil dan ada data: tabel menampilkan data dan melaporkan klik
+          tombol lewat props, tanpa memanggil API sendiri. */}
       {kondisi === "berhasil" && daftar.length > 0 && (
-        <BrandTable brands={daftar} />
+        <BrandTable
+          brands={daftar}
+          onArsipkan={setBrandAkanDiarsipkan}
+          onPulihkan={pulihkan}
+          idSedangDiproses={idSedangDiproses}
+        />
       )}
+
+      {/* Dialog konfirmasi arsip. Terbuka selama ada brand yang dipilih. */}
+      <DialogArsipBrand
+        brand={brandAkanDiarsipkan}
+        sedangMemproses={idSedangDiproses !== null}
+        onBatal={() => setBrandAkanDiarsipkan(null)}
+        onKonfirmasi={konfirmasiArsip}
+      />
     </div>
   )
 }
