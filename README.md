@@ -1,7 +1,7 @@
 ## Cara Menjalankan
 
 ### Prasyarat
-- Node.js versi 22 (versi yang dipakai pengembang) dan npm.
+- Node.js versi 22 dan npm.
 - API Backend (repositori bimaone-api) sudah berjalan, dan laptop ini berada di jaringan Wi-Fi yang sama dengan laptop Backend.
 
 ### Langkah
@@ -19,7 +19,7 @@
    cp .env.example .env.local
 ```
 
-   Buka .env.local dan ubah nilai NEXT_PUBLIC_API_URL menjadi alamat API, contohnya http://192.168.1.23:8080 (tanpa garis miring di akhir). Berkas .env.local tidak ikut Git, jadi isinya tidak ikut terkirim ke GitHub.
+   Buka .env.local dan ubah nilai NEXT_PUBLIC_API_URL menjadi alamat API, misalnya http://192.168.1.23:8080 (tanpa garis miring di akhir). Berkas .env.local tidak ikut Git, jadi isinya tidak terkirim ke GitHub.
 
 3. Jalankan server pengembangan:
 
