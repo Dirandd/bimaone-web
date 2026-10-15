@@ -11,3 +11,13 @@ export type Warehouse = {
   created_at: string;
   updated_at: string;
 };
+
+// Bentuk data Brand dari API. Aturan penulisan sama seperti tipe Warehouse.
+export type Brand = {
+  id: number;
+  name: string;
+  description: string | null;
+  archived_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
