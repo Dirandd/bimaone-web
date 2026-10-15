@@ -2,6 +2,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { dataTiruan } from "@/lib/dummy-brands"
+import { BrandTable } from "@/components/ui/brands/brand-table"
+// ...
+<BrandTable brands={dataTiruan} />
 
 export default function HalamanDaftarBrand() {
   return (
