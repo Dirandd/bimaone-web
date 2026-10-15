@@ -11,6 +11,9 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { GalatApi, GalatJaringan } from "@/lib/apiclient"
 import type { DataBrand } from "@/lib/api/brands"
+// DIPERBAIKI: cn dipakai untuk menggabungkan kelas supaya kelas yang bertabrakan
+// (border-transparent dan border-border) tidak keduanya terpasang.
+import { cn } from "@/lib/utils"
 
 // Props: data yang diberikan halaman induk ke form ini.
 // - nilaiAwal: isi awal kolom. Kosong untuk form tambah, terisi untuk form ubah nanti.
@@ -146,9 +149,12 @@ export function BrandForm({ nilaiAwal, teksTombol, onKirim }: BrandFormProps) {
         </Button>
 
         {/* Button shadcn di proyek ini tidak punya asChild, jadi tautan dibuat
-            tampak seperti tombol lewat buttonVariants (pola yang sama dengan
-            tombol Tambah Gudang). */}
-        <Link href="/brands" className={buttonVariants({ variant: "outline" })}>
+            tampak seperti tombol lewat buttonVariants.
+            DIPERBAIKI: dibungkus cn(...) supaya bingkai varian outline tampil. */}
+        <Link
+          href="/brands"
+          className={cn(buttonVariants({ variant: "outline" }))}
+        >
           Batal
         </Link>
       </div>
