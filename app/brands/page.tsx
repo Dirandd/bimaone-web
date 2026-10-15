@@ -1,7 +1,7 @@
 "use client"
 
-// "use client" wajib di baris pertama karena halaman ini sekarang memakai state
-// dan efek. Keduanya hanya berjalan di peramban, bukan di server.
+// "use client" wajib di baris pertama karena halaman ini memakai state dan efek.
+// Keduanya hanya berjalan di peramban, bukan di server.
 
 import { useEffect, useState } from "react"
 
@@ -12,9 +12,9 @@ import { ambilDaftarBrand } from "@/lib/api/brands"
 import { GalatApi, GalatJaringan } from "@/lib/apiclient"
 import type { Brand } from "@/lib/types"
 
-// Tiga kondisi halaman. Brief mensyaratkan: memuat, kosong, galat, dan berhasil.
-// "Kosong" tidak dijadikan kondisi tersendiri karena ditentukan dari daftar
-// yang panjangnya nol saat kondisinya "berhasil".
+// Tiga kondisi halaman. Brief mensyaratkan empat tampilan: memuat, galat, kosong,
+// dan berhasil. "Kosong" tidak dijadikan kondisi tersendiri karena ditentukan
+// dari daftar yang panjangnya nol saat kondisinya "berhasil".
 type Kondisi = "memuat" | "berhasil" | "galat"
 
 export default function HalamanDaftarBrand() {
@@ -28,7 +28,7 @@ export default function HalamanDaftarBrand() {
   const [pesanGalat, setPesanGalat] = useState("")
 
   // Penghitung percobaan. Setiap nilainya berubah, efek di bawah berjalan ulang.
-  // Dipakai oleh tombol "Coba lagi" supaya data dimuat ulang.
+  // Dipakai tombol "Coba lagi" supaya data dimuat ulang.
   const [percobaan, setPercobaan] = useState(0)
 
   useEffect(() => {
@@ -39,15 +39,19 @@ export default function HalamanDaftarBrand() {
     ambilDaftarBrand()
       .then((respons) => {
         if (dibatalkan) return
-        setDaftar(respons.data)
+
+        // DIPERBAIKI: "?? []" berarti pakai daftar kosong kalau data bernilai null
+        // atau tidak ada. Tanpa ini, daftar.length di bawah gagal dibaca dan halaman
+        // berhenti dengan jendela galat merah. Ini pengaman di sisi Frontend.
+        setDaftar(respons.data ?? [])
         setKondisi("berhasil")
       })
       .catch((galat: unknown) => {
         if (dibatalkan) return
 
-        // Galat jaringan dan galat API sama-sama membawa pesan yang sudah
-        // berbahasa Indonesia dan aman ditampilkan. Selain keduanya, pakai
-        // pesan umum supaya detail teknis tidak bocor ke layar.
+        // GalatJaringan dan GalatApi sama-sama membawa pesan berbahasa Indonesia
+        // yang aman ditampilkan. Galat lain diganti pesan umum supaya detail
+        // teknis tidak bocor ke layar.
         if (galat instanceof GalatJaringan || galat instanceof GalatApi) {
           setPesanGalat(galat.message)
         } else {
@@ -78,7 +82,7 @@ export default function HalamanDaftarBrand() {
         <Button>Tambah Brand</Button>
       </div>
 
-      {/* Kondisi 1: memuat. Lima baris skeleton menggantikan tabel. */}
+      {/* Kondisi memuat: lima baris skeleton menggantikan tabel. */}
       {kondisi === "memuat" && (
         <div className="space-y-2">
           {Array.from({ length: 5 }).map((_, indeks) => (
@@ -87,7 +91,7 @@ export default function HalamanDaftarBrand() {
         </div>
       )}
 
-      {/* Kondisi 2: galat. Pesan yang bisa dimengerti dan tombol untuk mengulang. */}
+      {/* Kondisi galat: pesan yang bisa dimengerti dan tombol untuk mengulang. */}
       {kondisi === "galat" && (
         <div className="space-y-4 rounded-md border p-6 text-center">
           <p className="text-sm">{pesanGalat}</p>
@@ -97,7 +101,7 @@ export default function HalamanDaftarBrand() {
         </div>
       )}
 
-      {/* Kondisi 3: kosong. Berhasil memanggil API, tetapi belum ada data. */}
+      {/* Kondisi kosong: API berhasil menjawab, tetapi belum ada data. */}
       {kondisi === "berhasil" && daftar.length === 0 && (
         <div className="space-y-4 rounded-md border p-6 text-center">
           <p className="text-sm">Belum ada brand.</p>
@@ -105,7 +109,7 @@ export default function HalamanDaftarBrand() {
         </div>
       )}
 
-      {/* Kondisi 4: berhasil dan ada data. Tabel hanya menampilkan data dari props. */}
+      {/* Kondisi berhasil dan ada data: tabel hanya menampilkan data dari props. */}
       {kondisi === "berhasil" && daftar.length > 0 && (
         <BrandTable brands={daftar} />
       )}
