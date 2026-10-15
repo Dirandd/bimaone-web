@@ -1,11 +1,4 @@
-export type Brand = {
-  id: number
-  name: string
-  description: string | null
-  archived_at: string | null
-  created_at: string
-  updated_at: string
-}
+import type { Brand } from "@/lib/types"
 
 export const dataTiruan: Brand[] = [
   {
