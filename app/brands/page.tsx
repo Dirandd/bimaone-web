@@ -3,9 +3,10 @@
 // "use client" wajib di baris pertama karena halaman ini memakai state dan efek.
 // Keduanya hanya berjalan di peramban, bukan di server.
 
+import Link from "next/link"
 import { useEffect, useState } from "react"
 
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { BrandTable } from "@/components/ui/brands/brand-table"
 import { ambilDaftarBrand } from "@/lib/api/brands"
@@ -40,9 +41,9 @@ export default function HalamanDaftarBrand() {
       .then((respons) => {
         if (dibatalkan) return
 
-        // DIPERBAIKI: "?? []" berarti pakai daftar kosong kalau data bernilai null
-        // atau tidak ada. Tanpa ini, daftar.length di bawah gagal dibaca dan halaman
-        // berhenti dengan jendela galat merah. Ini pengaman di sisi Frontend.
+        // "?? []" berarti pakai daftar kosong kalau data bernilai null atau tidak ada.
+        // API saat ini mengirim "data": null untuk daftar kosong. Ini pengaman
+        // di sisi Frontend.
         setDaftar(respons.data ?? [])
         setKondisi("berhasil")
       })
@@ -78,8 +79,11 @@ export default function HalamanDaftarBrand() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Brand</h1>
 
-        {/* Belum berfungsi. Halaman /brands/new dibuat di Pull Request lain. */}
-        <Button>Tambah Brand</Button>
+        {/* Button shadcn di proyek ini tidak punya asChild, jadi tautan dibuat
+            tampak seperti tombol lewat buttonVariants. */}
+        <Link href="/brands/new" className={buttonVariants()}>
+          Tambah Brand
+        </Link>
       </div>
 
       {/* Kondisi memuat: lima baris skeleton menggantikan tabel. */}
@@ -105,7 +109,9 @@ export default function HalamanDaftarBrand() {
       {kondisi === "berhasil" && daftar.length === 0 && (
         <div className="space-y-4 rounded-md border p-6 text-center">
           <p className="text-sm">Belum ada brand.</p>
-          <Button>Tambah Brand</Button>
+          <Link href="/brands/new" className={buttonVariants()}>
+            Tambah Brand
+          </Link>
         </div>
       )}
 
