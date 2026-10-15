@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AppSidebar } from "@/components/ui/app-sidebar";
+// Tempat notifikasi (toast) dari sonner. Dipasang sekali di sini supaya semua halaman
+// bisa memanggil toast.success(...) dan sejenisnya.
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,6 +32,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <AppSidebar />
         {/* min-w-0 supaya tabel lebar tidak mendorong sidebar */}
         <main className="min-w-0 flex-1 p-6">{children}</main>
+        {/* Wadah notifikasi. Tidak menampilkan apa pun sampai ada toast yang dipanggil. */}
+        <Toaster />
       </body>
     </html>
   );
