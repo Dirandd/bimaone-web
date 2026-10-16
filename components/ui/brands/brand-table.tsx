@@ -1,7 +1,9 @@
+import Link from "next/link" // BARU
 import type { Brand } from "@/lib/types"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button" // BARU: buttonVariants
+import { cn } from "@/lib/utils" // BARU
 
 // Props: data dan aksi yang diberikan halaman induk.
 // - brands: daftar brand yang ditampilkan.
@@ -9,8 +11,6 @@ import { Button } from "@/components/ui/button"
 //   API sendiri. Halaman yang memutuskan apa yang terjadi (membuka dialog, memanggil API).
 // - idSedangDiproses: id brand yang sedang diarsipkan atau dipulihkan, supaya tombol
 //   di baris itu nonaktif dan tidak terklik dua kali. Null kalau tidak ada yang diproses.
-// Komponen ini ikut berjalan di peramban karena diimpor oleh halaman yang memakai
-// "use client", jadi tidak perlu menulisnya lagi di sini.
 type BrandTableProps = {
   brands: Brand[]
   onArsipkan: (brand: Brand) => void
@@ -50,11 +50,15 @@ export function BrandTable({
               </TableCell>
               <TableCell>
                 <div className="flex justify-end gap-2">
-                  {/* Belum berfungsi. Halaman ubah dibuat di Pull Request lain,
-                      setelah endpoint detail dari API tersedia. */}
-                  <Button variant="outline" size="sm">
+                  {/* BARU: Ubah menjadi tautan ke halaman ubah. Button shadcn di proyek
+                      ini tidak punya asChild, jadi tautan dibuat tampak seperti tombol
+                      lewat buttonVariants, dibungkus cn supaya bingkainya tampil. */}
+                  <Link
+                    href={`/brands/${brand.id}/edit`}
+                    className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+                  >
                     Ubah
-                  </Button>
+                  </Link>
 
                   {/* Aktif: tombol Arsipkan. Arsip: tombol Pulihkan. */}
                   {brand.archived_at === null ? (
