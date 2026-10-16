@@ -26,6 +26,12 @@ type BrandFormProps = {
   onKirim: (data: DataBrand) => Promise<void>
 }
 
+// Nama kolom (sama dengan kunci "fields" dari API) yang punya tempat pesan di form ini.
+// Kalau API mengirim galat untuk kolom di luar daftar ini, pesannya tidak punya tempat
+// di bawah kolom, jadi dipindahkan ke pesan umum di atas form (lihat blok catch di bawah).
+// Menambah kolom baru di form berarti menambah namanya di sini juga.
+const KOLOM_FORM = ["name", "description"]
+
 // Validasi cepat di sisi Frontend, sesuai aturan data Brand di brief.
 // Backend tetap memvalidasi ulang, karena Backend tidak boleh percaya data dari Frontend.
 // Hasilnya berupa objek: kunci adalah nama kolom, nilai adalah pesan galatnya.
@@ -85,11 +91,27 @@ export function BrandForm({ nilaiAwal, teksTombol, onKirim }: BrandFormProps) {
       })
     } catch (galat: unknown) {
       if (galat instanceof GalatApi && (galat.status === 409 || galat.status === 422)) {
-        // 409 (nama sudah dipakai) dan 422 (data tidak valid) membawa "fields":
-        // tampilkan di bawah kolom yang salah. Kalau "fields" kosong, pakai pesan umum.
-        if (Object.keys(galat.fields).length > 0) {
-          setGalatKolom(galat.fields)
-        } else {
+        // 409 (nama sudah dipakai) dan 422 (data tidak valid) membawa "fields".
+        // Pesan untuk kolom yang ada di form ditampilkan di bawah kolomnya. Pesan untuk
+        // kolom yang tidak dikenal form dikumpulkan ke pesan umum, supaya tidak ada galat
+        // yang hilang tanpa terlihat pengguna.
+        const galatDikenal: Record<string, string> = {}
+        const pesanLain: string[] = []
+
+        for (const [kolom, pesan] of Object.entries(galat.fields)) {
+          if (KOLOM_FORM.includes(kolom)) {
+            galatDikenal[kolom] = pesan
+          } else {
+            pesanLain.push(pesan)
+          }
+        }
+
+        setGalatKolom(galatDikenal)
+
+        if (pesanLain.length > 0) {
+          setGalatUmum(pesanLain.join(". "))
+        } else if (Object.keys(galatDikenal).length === 0) {
+          // "fields" kosong: tidak ada petunjuk kolom, pakai pesan umum dari API.
           setGalatUmum(galat.message)
         }
       } else if (galat instanceof GalatApi || galat instanceof GalatJaringan) {
