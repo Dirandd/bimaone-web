@@ -2,7 +2,7 @@ import {
   panggilApi,
   type ResponsDaftar,
   type ResponsTunggal,
-} from "@/lib/apiclient"
+} from "@/lib/api-client"
 
 import type { Warehouse } from "@/lib/types"
 

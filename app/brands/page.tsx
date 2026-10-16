@@ -15,7 +15,7 @@ import { BrandTable } from "@/components/ui/brands/brand-table"
 import { BrandToolbar, type StatusDaftar } from "@/components/ui/brands/brand-toolbar"
 import { DialogArsipBrand } from "@/components/ui/brands/dialog-arsip-brand"
 import { ambilDaftarBrand, arsipkanBrand, pulihkanBrand } from "@/lib/api/brands"
-import { GalatApi, GalatJaringan } from "@/lib/apiclient"
+import { GalatApi, GalatJaringan } from "@/lib/api-client"
 import type { Brand } from "@/lib/types"
 
 // BARU: jumlah brand per halaman. Bawaan di Kontrak API adalah 10.

@@ -9,7 +9,7 @@ import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { GalatApi, GalatJaringan } from "@/lib/apiclient"
+import { GalatApi, GalatJaringan } from "@/lib/api-client"
 import type { DataBrand } from "@/lib/api/brands"
 // DIPERBAIKI: cn dipakai untuk menggabungkan kelas supaya kelas yang bertabrakan
 // (border-transparent dan border-border) tidak keduanya terpasang.
