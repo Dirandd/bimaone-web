@@ -65,19 +65,24 @@ export function BrandForm({ nilaiAwal, teksTombol, onKirim }: BrandFormProps) {
   const [galatKolom, setGalatKolom] = useState<Record<string, string>>({})
   const [galatUmum, setGalatUmum] = useState("")
 
+  // Benar kalau galat terakhir layak dicoba lagi tanpa mengubah isian, yaitu koneksi
+  // gagal atau server bermasalah (500). Galat lain, seperti 409 dan 422, harus
+  // diperbaiki dulu isiannya, jadi tombol "Coba lagi" tidak ditampilkan untuk itu.
+  const [bisaCobaLagi, setBisaCobaLagi] = useState(false)
+
   // Benar selama data sedang dikirim. Dipakai untuk menonaktifkan tombol Simpan
   // supaya form tidak terkirim dua kali, sesuai brief.
   const [sedangMengirim, setSedangMengirim] = useState(false)
 
-  async function kirim(event: FormEvent<HTMLFormElement>) {
-    // Mencegah peramban memuat ulang halaman saat form dikirim.
-    event.preventDefault()
-
+  // Memeriksa isian lalu mengirimnya ke API. Dipisah dari kirim() supaya tombol
+  // "Coba lagi" bisa memanggilnya tanpa peristiwa form.
+  async function proses() {
     // Langkah 1: periksa di Frontend. Kalau ada yang salah, berhenti di sini
     // dan tampilkan pesan di bawah kolomnya, tanpa memanggil API.
     const hasilPeriksa = periksaData(nama, deskripsi)
     setGalatKolom(hasilPeriksa)
     setGalatUmum("")
+    setBisaCobaLagi(false)
     if (Object.keys(hasilPeriksa).length > 0) return
 
     // Langkah 2: kirim lewat fungsi dari halaman induk.
@@ -118,24 +123,51 @@ export function BrandForm({ nilaiAwal, teksTombol, onKirim }: BrandFormProps) {
           // "fields" kosong: tidak ada petunjuk kolom, pakai pesan umum dari API.
           setGalatUmum(galat.message)
         }
-      } else if (galat instanceof GalatApi || galat instanceof GalatJaringan) {
+      } else if (galat instanceof GalatJaringan) {
+        // Koneksi gagal: isian tidak salah, jadi boleh dicoba lagi apa adanya.
         setGalatUmum(galat.message)
+        setBisaCobaLagi(true)
+      } else if (galat instanceof GalatApi) {
+        setGalatUmum(galat.message)
+        // Hanya galat server (500 ke atas) yang layak dicoba lagi. Galat seperti 400
+        // dan 404 akan sama saja hasilnya kalau diulang.
+        setBisaCobaLagi(galat.status >= 500)
       } else {
         setGalatUmum("Terjadi kesalahan yang tidak terduga. Silakan coba lagi.")
+        setBisaCobaLagi(true)
       }
       // Gagal: aktifkan tombol kembali supaya pengguna bisa memperbaiki dan mencoba lagi.
       setSedangMengirim(false)
     }
   }
 
+  // Dipanggil saat form dikirim (tombol Simpan atau Enter).
+  function kirim(event: FormEvent<HTMLFormElement>) {
+    // Mencegah peramban memuat ulang halaman saat form dikirim.
+    event.preventDefault()
+    void proses()
+  }
+
   return (
     // max-w-xl membatasi lebar form supaya tidak melebar penuh di layar besar.
     <form onSubmit={kirim} className="max-w-xl space-y-6" noValidate>
-      {/* Galat umum: tampil di atas form kalau galatnya bukan milik satu kolom. */}
+      {/* Galat umum: tampil di atas form kalau galatnya bukan milik satu kolom.
+          Untuk galat koneksi atau server, ada tombol "Coba lagi" sesuai brief. */}
       {galatUmum !== "" && (
-        <p className="rounded-md border border-destructive/50 p-3 text-sm text-destructive">
-          {galatUmum}
-        </p>
+        <div className="flex items-center justify-between gap-3 rounded-md border border-destructive/50 p-3">
+          <p className="text-sm text-destructive">{galatUmum}</p>
+          {bisaCobaLagi && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={sedangMengirim}
+              onClick={proses}
+            >
+              Coba lagi
+            </Button>
+          )}
+        </div>
       )}
 
       <div className="space-y-2">
