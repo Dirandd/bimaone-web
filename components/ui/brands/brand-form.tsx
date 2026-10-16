@@ -9,14 +9,14 @@ import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { GalatApi, GalatJaringan } from "@/lib/apiclient"
+import { GalatApi, GalatJaringan } from "@/lib/api-client"
 import type { DataBrand } from "@/lib/api/brands"
-// DIPERBAIKI: cn dipakai untuk menggabungkan kelas supaya kelas yang bertabrakan
-// (border-transparent dan border-border) tidak keduanya terpasang.
+// cn menggabungkan kelas supaya kelas yang bertabrakan (border-transparent dan
+// border-border) tidak keduanya terpasang. Dipakai untuk tombol Batal di bawah.
 import { cn } from "@/lib/utils"
 
 // Props: data yang diberikan halaman induk ke form ini.
-// - nilaiAwal: isi awal kolom. Kosong untuk form tambah, terisi untuk form ubah nanti.
+// - nilaiAwal: isi awal kolom. Kosong untuk form tambah, terisi data lama untuk form ubah.
 // - teksTombol: tulisan di tombol kirim, misalnya "Simpan".
 // - onKirim: fungsi dari halaman yang benar-benar memanggil API. Form ini sengaja
 //   tidak memanggil API sendiri supaya bisa dipakai ulang untuk tambah dan ubah.
@@ -25,6 +25,12 @@ type BrandFormProps = {
   teksTombol: string
   onKirim: (data: DataBrand) => Promise<void>
 }
+
+// Nama kolom (sama dengan kunci "fields" dari API) yang punya tempat pesan di form ini.
+// Kalau API mengirim galat untuk kolom di luar daftar ini, pesannya tidak punya tempat
+// di bawah kolom, jadi dipindahkan ke pesan umum di atas form (lihat blok catch di bawah).
+// Menambah kolom baru di form berarti menambah namanya di sini juga.
+const KOLOM_FORM = ["name", "description"]
 
 // Validasi cepat di sisi Frontend, sesuai aturan data Brand di brief.
 // Backend tetap memvalidasi ulang, karena Backend tidak boleh percaya data dari Frontend.
@@ -59,19 +65,24 @@ export function BrandForm({ nilaiAwal, teksTombol, onKirim }: BrandFormProps) {
   const [galatKolom, setGalatKolom] = useState<Record<string, string>>({})
   const [galatUmum, setGalatUmum] = useState("")
 
+  // Benar kalau galat terakhir layak dicoba lagi tanpa mengubah isian, yaitu koneksi
+  // gagal atau server bermasalah (500). Galat lain, seperti 409 dan 422, harus
+  // diperbaiki dulu isiannya, jadi tombol "Coba lagi" tidak ditampilkan untuk itu.
+  const [bisaCobaLagi, setBisaCobaLagi] = useState(false)
+
   // Benar selama data sedang dikirim. Dipakai untuk menonaktifkan tombol Simpan
   // supaya form tidak terkirim dua kali, sesuai brief.
   const [sedangMengirim, setSedangMengirim] = useState(false)
 
-  async function kirim(event: FormEvent<HTMLFormElement>) {
-    // Mencegah peramban memuat ulang halaman saat form dikirim.
-    event.preventDefault()
-
+  // Memeriksa isian lalu mengirimnya ke API. Dipisah dari kirim() supaya tombol
+  // "Coba lagi" bisa memanggilnya tanpa peristiwa form.
+  async function proses() {
     // Langkah 1: periksa di Frontend. Kalau ada yang salah, berhenti di sini
     // dan tampilkan pesan di bawah kolomnya, tanpa memanggil API.
     const hasilPeriksa = periksaData(nama, deskripsi)
     setGalatKolom(hasilPeriksa)
     setGalatUmum("")
+    setBisaCobaLagi(false)
     if (Object.keys(hasilPeriksa).length > 0) return
 
     // Langkah 2: kirim lewat fungsi dari halaman induk.
@@ -79,38 +90,84 @@ export function BrandForm({ nilaiAwal, teksTombol, onKirim }: BrandFormProps) {
     try {
       await onKirim({
         name: nama.trim(),
-        // Deskripsi kosong dikirim sebagai null. Cara yang diharapkan Backend
-        // belum dijawab, jadi baris ini bisa berubah.
+        // Deskripsi kosong dikirim sebagai null, sama seperti bentuk data dari API
+        // (kolom opsional yang kosong bernilai null).
         description: deskripsi.trim() === "" ? null : deskripsi.trim(),
       })
+      // Berhasil: halaman induk yang pindah halaman. Tombol sengaja dibiarkan
+      // nonaktif sampai halaman berpindah. Kalau diaktifkan lagi di sini, ada jeda
+      // singkat antara jawaban API dan perpindahan halaman, dan klik kedua pada jeda
+      // itu mengirim permintaan yang sama dua kali.
     } catch (galat: unknown) {
       if (galat instanceof GalatApi && (galat.status === 409 || galat.status === 422)) {
-        // 409 (nama sudah dipakai) dan 422 (data tidak valid) membawa "fields":
-        // tampilkan di bawah kolom yang salah. Kalau "fields" kosong, pakai pesan umum.
-        if (Object.keys(galat.fields).length > 0) {
-          setGalatKolom(galat.fields)
-        } else {
+        // 409 (nama sudah dipakai) dan 422 (data tidak valid) membawa "fields".
+        // Pesan untuk kolom yang ada di form ditampilkan di bawah kolomnya. Pesan untuk
+        // kolom yang tidak dikenal form dikumpulkan ke pesan umum, supaya tidak ada galat
+        // yang hilang tanpa terlihat pengguna.
+        const galatDikenal: Record<string, string> = {}
+        const pesanLain: string[] = []
+
+        for (const [kolom, pesan] of Object.entries(galat.fields)) {
+          if (KOLOM_FORM.includes(kolom)) {
+            galatDikenal[kolom] = pesan
+          } else {
+            pesanLain.push(pesan)
+          }
+        }
+
+        setGalatKolom(galatDikenal)
+
+        if (pesanLain.length > 0) {
+          setGalatUmum(pesanLain.join(". "))
+        } else if (Object.keys(galatDikenal).length === 0) {
+          // "fields" kosong: tidak ada petunjuk kolom, pakai pesan umum dari API.
           setGalatUmum(galat.message)
         }
-      } else if (galat instanceof GalatApi || galat instanceof GalatJaringan) {
+      } else if (galat instanceof GalatJaringan) {
+        // Koneksi gagal: isian tidak salah, jadi boleh dicoba lagi apa adanya.
         setGalatUmum(galat.message)
+        setBisaCobaLagi(true)
+      } else if (galat instanceof GalatApi) {
+        setGalatUmum(galat.message)
+        // Hanya galat server (500 ke atas) yang layak dicoba lagi. Galat seperti 400
+        // dan 404 akan sama saja hasilnya kalau diulang.
+        setBisaCobaLagi(galat.status >= 500)
       } else {
         setGalatUmum("Terjadi kesalahan yang tidak terduga. Silakan coba lagi.")
+        setBisaCobaLagi(true)
       }
-    } finally {
-      // Selalu dijalankan, berhasil atau gagal, supaya tombol aktif kembali.
+      // Gagal: aktifkan tombol kembali supaya pengguna bisa memperbaiki dan mencoba lagi.
       setSedangMengirim(false)
     }
+  }
+
+  // Dipanggil saat form dikirim (tombol Simpan atau Enter).
+  function kirim(event: FormEvent<HTMLFormElement>) {
+    // Mencegah peramban memuat ulang halaman saat form dikirim.
+    event.preventDefault()
+    void proses()
   }
 
   return (
     // max-w-xl membatasi lebar form supaya tidak melebar penuh di layar besar.
     <form onSubmit={kirim} className="max-w-xl space-y-6" noValidate>
-      {/* Galat umum: tampil di atas form kalau galatnya bukan milik satu kolom. */}
+      {/* Galat umum: tampil di atas form kalau galatnya bukan milik satu kolom.
+          Untuk galat koneksi atau server, ada tombol "Coba lagi" sesuai brief. */}
       {galatUmum !== "" && (
-        <p className="rounded-md border border-destructive/50 p-3 text-sm text-destructive">
-          {galatUmum}
-        </p>
+        <div className="flex items-center justify-between gap-3 rounded-md border border-destructive/50 p-3">
+          <p className="text-sm text-destructive">{galatUmum}</p>
+          {bisaCobaLagi && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={sedangMengirim}
+              onClick={proses}
+            >
+              Coba lagi
+            </Button>
+          )}
+        </div>
       )}
 
       <div className="space-y-2">
@@ -149,8 +206,8 @@ export function BrandForm({ nilaiAwal, teksTombol, onKirim }: BrandFormProps) {
         </Button>
 
         {/* Button shadcn di proyek ini tidak punya asChild, jadi tautan dibuat
-            tampak seperti tombol lewat buttonVariants.
-            DIPERBAIKI: dibungkus cn(...) supaya bingkai varian outline tampil. */}
+            tampak seperti tombol lewat buttonVariants, dibungkus cn(...) supaya
+            bingkai varian outline tampil. */}
         <Link
           href="/brands"
           className={cn(buttonVariants({ variant: "outline" }))}

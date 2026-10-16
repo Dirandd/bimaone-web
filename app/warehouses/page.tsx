@@ -23,7 +23,7 @@ import {
   arsipkanGudang,
   pulihkanGudang,
 } from "@/lib/api/warehouses"
-import { GalatApi, GalatJaringan } from "@/lib/apiclient"
+import { GalatApi, GalatJaringan } from "@/lib/api-client"
 import type { Warehouse } from "@/lib/types"
 
 // Jumlah gudang per halaman. Bawaan di Kontrak API adalah 10, maksimal 100.

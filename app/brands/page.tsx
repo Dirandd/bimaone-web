@@ -15,10 +15,10 @@ import { BrandTable } from "@/components/ui/brands/brand-table"
 import { BrandToolbar, type StatusDaftar } from "@/components/ui/brands/brand-toolbar"
 import { DialogArsipBrand } from "@/components/ui/brands/dialog-arsip-brand"
 import { ambilDaftarBrand, arsipkanBrand, pulihkanBrand } from "@/lib/api/brands"
-import { GalatApi, GalatJaringan } from "@/lib/apiclient"
+import { GalatApi, GalatJaringan } from "@/lib/api-client"
 import type { Brand } from "@/lib/types"
 
-// BARU: jumlah brand per halaman. Bawaan di Kontrak API adalah 10.
+// Jumlah brand per halaman. Bawaan di Kontrak API adalah 10, maksimal 100.
 const BARIS_PER_HALAMAN = 10
 
 // Tiga kondisi data. Brief mensyaratkan empat tampilan: memuat, galat, kosong, dan
@@ -42,7 +42,7 @@ function bacaStatus(nilai: string | null): StatusDaftar {
   return "active"
 }
 
-// BARU: membaca nomor halaman dari alamat. Hanya bilangan bulat mulai dari 1 yang
+// Membaca nomor halaman dari alamat. Hanya bilangan bulat mulai dari 1 yang
 // diterima. Number(null) hasilnya 0 dan Number("abc") hasilnya NaN, keduanya ditolak
 // dan dianggap halaman 1.
 function bacaHalaman(nilai: string | null): number {
@@ -80,7 +80,7 @@ function DataDaftar({
   // Daftar brand dari API. Awalnya kosong sampai data tiba.
   const [daftar, setDaftar] = useState<Brand[]>([])
 
-  // BARU: jumlah halaman dari meta API. Null berarti API belum mengirim meta, jadi
+  // Jumlah halaman dari meta API. Null berarti API tidak mengirim meta, jadi
   // jumlah halaman tidak diketahui dan tombol halaman tidak ditampilkan.
   const [totalHalaman, setTotalHalaman] = useState<number | null>(null)
 
@@ -118,9 +118,9 @@ function DataDaftar({
         // "?? []" berarti pakai daftar kosong kalau data bernilai null atau tidak ada.
         setDaftar(respons.data ?? [])
 
-        // BARU: "?." membaca meta dengan aman. Tipe kita menjanjikan meta selalu ada,
-        // tetapi API saat ini belum mengirimnya, dan TypeScript tidak memeriksa isi
-        // jawaban saat berjalan. Tanpa meta hasilnya null.
+        // "?." membaca meta dengan aman. Tipe kita menjanjikan meta selalu ada,
+        // tetapi TypeScript tidak memeriksa isi jawaban saat berjalan. Tanpa meta
+        // hasilnya null.
         setTotalHalaman(respons.meta?.total_pages ?? null)
         setKondisi("berhasil")
       })
@@ -194,12 +194,15 @@ function DataDaftar({
         </div>
       )}
 
-      {/* Kondisi kosong. Ada tiga keadaan berbeda, dari yang paling khusus:
-          halaman di luar jangkauan, hasil pencarian kosong, atau memang belum ada data. */}
+      {/* Kondisi kosong. Empat keadaan berbeda, dari yang paling khusus: halaman
+          di luar jangkauan, hasil pencarian kosong, filter Arsip atau Semua yang
+          tidak ada isinya, atau memang belum ada brand aktif. */}
       {kondisi === "berhasil" && daftar.length === 0 && (
         <div className="space-y-4 rounded-md border p-6 text-center">
           {totalHalaman !== null && halaman > Math.max(totalHalaman, 1) ? (
-            // BARU: hanya berlaku kalau jumlah halaman diketahui (meta ada).
+            // Hanya berlaku kalau jumlah halaman diketahui (meta ada). Terjadi kalau
+            // alamat diketik sembarangan, atau setelah mengarsipkan data terakhir
+            // di halaman terakhir.
             <>
               <p className="text-sm">
                 Halaman {halaman} tidak ada. Hanya ada {Math.max(totalHalaman, 1)} halaman.
@@ -235,8 +238,8 @@ function DataDaftar({
         />
       )}
 
-      {/* BARU: navigasi halaman. Hanya tampil kalau jumlah halaman diketahui dan
-          lebih dari satu. Selama API belum mengirim meta, bagian ini tidak tampil. */}
+      {/* Navigasi halaman. Hanya tampil kalau jumlah halaman diketahui dan lebih
+          dari satu. Selama API tidak mengirim meta, bagian ini tidak tampil. */}
       {kondisi === "berhasil" &&
         daftar.length > 0 &&
         totalHalaman !== null &&
@@ -268,7 +271,7 @@ function IsiHalaman() {
 
   const search = searchParams.get("search") ?? ""
   const status = bacaStatus(searchParams.get("status"))
-  const halaman = bacaHalaman(searchParams.get("page")) // BARU
+  const halaman = bacaHalaman(searchParams.get("page"))
 
   // Mengubah parameter alamat. Nilai null atau teks kosong berarti parameter itu
   // dihapus dari alamat, jadi alamat tetap bersih. Parameter lain dibiarkan.
@@ -288,7 +291,7 @@ function IsiHalaman() {
     router.push(teks === "" ? "/brands" : `/brands?${teks}`)
   }
 
-  // BARU: pindah halaman. Halaman 1 adalah bawaan, jadi tidak ditulis di alamat.
+  // Pindah halaman. Halaman 1 adalah bawaan, jadi tidak ditulis di alamat.
   function pindahHalaman(tujuan: number) {
     ubahParameter({ page: tujuan === 1 ? null : String(tujuan) })
   }
@@ -308,7 +311,7 @@ function IsiHalaman() {
 
       {/* key berisi kata kunci: kalau alamat berubah (misalnya lewat tombol Kembali),
           kotak cari dibuat ulang dan teksnya mengikuti alamat.
-          BARU: mencari atau mengganti status menghapus page, supaya kembali ke halaman 1. */}
+          Mencari atau mengganti status juga menghapus page, supaya kembali ke halaman 1. */}
       <BrandToolbar
         key={search}
         search={search}
