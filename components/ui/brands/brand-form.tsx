@@ -89,6 +89,10 @@ export function BrandForm({ nilaiAwal, teksTombol, onKirim }: BrandFormProps) {
         // (kolom opsional yang kosong bernilai null).
         description: deskripsi.trim() === "" ? null : deskripsi.trim(),
       })
+      // Berhasil: halaman induk yang pindah halaman. Tombol sengaja dibiarkan
+      // nonaktif sampai halaman berpindah. Kalau diaktifkan lagi di sini, ada jeda
+      // singkat antara jawaban API dan perpindahan halaman, dan klik kedua pada jeda
+      // itu mengirim permintaan yang sama dua kali.
     } catch (galat: unknown) {
       if (galat instanceof GalatApi && (galat.status === 409 || galat.status === 422)) {
         // 409 (nama sudah dipakai) dan 422 (data tidak valid) membawa "fields".
@@ -119,8 +123,7 @@ export function BrandForm({ nilaiAwal, teksTombol, onKirim }: BrandFormProps) {
       } else {
         setGalatUmum("Terjadi kesalahan yang tidak terduga. Silakan coba lagi.")
       }
-    } finally {
-      // Selalu dijalankan, berhasil atau gagal, supaya tombol aktif kembali.
+      // Gagal: aktifkan tombol kembali supaya pengguna bisa memperbaiki dan mencoba lagi.
       setSedangMengirim(false)
     }
   }
