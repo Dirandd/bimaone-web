@@ -11,12 +11,12 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { GalatApi, GalatJaringan } from "@/lib/api-client"
 import type { DataBrand } from "@/lib/api/brands"
-// DIPERBAIKI: cn dipakai untuk menggabungkan kelas supaya kelas yang bertabrakan
-// (border-transparent dan border-border) tidak keduanya terpasang.
+// cn menggabungkan kelas supaya kelas yang bertabrakan (border-transparent dan
+// border-border) tidak keduanya terpasang. Dipakai untuk tombol Batal di bawah.
 import { cn } from "@/lib/utils"
 
 // Props: data yang diberikan halaman induk ke form ini.
-// - nilaiAwal: isi awal kolom. Kosong untuk form tambah, terisi untuk form ubah nanti.
+// - nilaiAwal: isi awal kolom. Kosong untuk form tambah, terisi data lama untuk form ubah.
 // - teksTombol: tulisan di tombol kirim, misalnya "Simpan".
 // - onKirim: fungsi dari halaman yang benar-benar memanggil API. Form ini sengaja
 //   tidak memanggil API sendiri supaya bisa dipakai ulang untuk tambah dan ubah.
@@ -85,8 +85,8 @@ export function BrandForm({ nilaiAwal, teksTombol, onKirim }: BrandFormProps) {
     try {
       await onKirim({
         name: nama.trim(),
-        // Deskripsi kosong dikirim sebagai null. Cara yang diharapkan Backend
-        // belum dijawab, jadi baris ini bisa berubah.
+        // Deskripsi kosong dikirim sebagai null, sama seperti bentuk data dari API
+        // (kolom opsional yang kosong bernilai null).
         description: deskripsi.trim() === "" ? null : deskripsi.trim(),
       })
     } catch (galat: unknown) {
@@ -171,8 +171,8 @@ export function BrandForm({ nilaiAwal, teksTombol, onKirim }: BrandFormProps) {
         </Button>
 
         {/* Button shadcn di proyek ini tidak punya asChild, jadi tautan dibuat
-            tampak seperti tombol lewat buttonVariants.
-            DIPERBAIKI: dibungkus cn(...) supaya bingkai varian outline tampil. */}
+            tampak seperti tombol lewat buttonVariants, dibungkus cn(...) supaya
+            bingkai varian outline tampil. */}
         <Link
           href="/brands"
           className={cn(buttonVariants({ variant: "outline" }))}

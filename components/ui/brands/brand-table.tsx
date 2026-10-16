@@ -1,9 +1,9 @@
-import Link from "next/link" // BARU
+import Link from "next/link"
 import type { Brand } from "@/lib/types"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { Button, buttonVariants } from "@/components/ui/button" // BARU: buttonVariants
-import { cn } from "@/lib/utils" // BARU
+import { Button, buttonVariants } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 // Props: data dan aksi yang diberikan halaman induk.
 // - brands: daftar brand yang ditampilkan.
@@ -50,7 +50,7 @@ export function BrandTable({
               </TableCell>
               <TableCell>
                 <div className="flex justify-end gap-2">
-                  {/* BARU: Ubah menjadi tautan ke halaman ubah. Button shadcn di proyek
+                  {/* Ubah: tautan ke halaman ubah. Button shadcn di proyek
                       ini tidak punya asChild, jadi tautan dibuat tampak seperti tombol
                       lewat buttonVariants, dibungkus cn supaya bingkainya tampil. */}
                   <Link
