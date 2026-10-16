@@ -4,6 +4,7 @@
 // pembaca alamat (useSearchParams). Semuanya hanya berjalan di peramban.
 
 import Link from "next/link"
+import { Plus } from "lucide-react"
 import { Suspense, useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { toast } from "sonner"
@@ -156,6 +157,7 @@ function DataDaftar({ status }: { status: StatusDaftar }) {
             <>
               <p className="text-sm">Belum ada gudang.</p>
               <Link href="/warehouses/new" className={buttonVariants()}>
+                <Plus />
                 Tambah Gudang
               </Link>
             </>
@@ -224,6 +226,7 @@ function IsiHalaman() {
         {/* Button shadcn di proyek ini tidak punya asChild, jadi tautan dibuat
             tampak seperti tombol lewat buttonVariants. */}
         <Link href="/warehouses/new" className={buttonVariants()}>
+          <Plus />
           Tambah Gudang
         </Link>
       </div>
