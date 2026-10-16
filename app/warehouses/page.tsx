@@ -12,6 +12,7 @@ import { toast } from "sonner"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { DialogArsipGudang } from "@/components/ui/warehouses/dialog-arsip-gudang"
+import { WarehousePagination } from "@/components/ui/warehouses/warehouse-pagination"
 import { WarehouseTable } from "@/components/ui/warehouses/warehouse-table"
 import {
   WarehouseToolbar,
@@ -20,6 +21,9 @@ import {
 import { ambilDaftarGudang, arsipkanGudang } from "@/lib/api/warehouses"
 import { GalatApi, GalatJaringan } from "@/lib/apiclient"
 import type { Warehouse } from "@/lib/types"
+
+// Jumlah gudang per halaman. Bawaan di Kontrak API adalah 10, maksimal 100.
+const BARIS_PER_HALAMAN = 10
 
 // Tiga kondisi data. Brief mensyaratkan empat tampilan: memuat, galat, kosong, dan
 // berhasil. "Kosong" ditentukan dari daftar yang panjangnya nol saat kondisinya "berhasil".
@@ -42,6 +46,14 @@ function bacaStatus(nilai: string | null): StatusDaftar {
   return "active"
 }
 
+// Membaca nomor halaman dari alamat. Hanya bilangan bulat mulai dari 1 yang
+// diterima. Number(null) hasilnya 0 dan Number("abc") hasilnya NaN, keduanya ditolak
+// dan dianggap halaman 1.
+function bacaHalaman(nilai: string | null): number {
+  const angka = Number(nilai)
+  return Number.isInteger(angka) && angka >= 1 ? angka : 1
+}
+
 // Lima baris skeleton. Dipakai saat data dimuat, dan sebagai cadangan selagi Next.js
 // membaca alamat (Suspense di bawah).
 function KerangkaMemuat() {
@@ -54,13 +66,27 @@ function KerangkaMemuat() {
   )
 }
 
-// Bagian yang mengambil dan menampilkan data. Menerima status dari alamat lewat props.
-// Halaman induk memberinya "key" berisi status itu, jadi setiap status berubah,
-// komponen ini dibuat ulang dari awal: state kembali ke "memuat", skeleton tampil,
-// dan data diambil lagi.
-function DataDaftar({ status }: { status: StatusDaftar }) {
+// Bagian yang mengambil dan menampilkan data. Menerima kata kunci, status, dan halaman
+// dari alamat lewat props. Halaman induk memberinya "key" berisi ketiganya, jadi
+// setiap salah satunya berubah, komponen ini dibuat ulang dari awal: state kembali
+// ke "memuat", skeleton tampil, dan data diambil lagi.
+function DataDaftar({
+  search,
+  status,
+  halaman,
+  onUbahHalaman,
+}: {
+  search: string
+  status: StatusDaftar
+  halaman: number
+  onUbahHalaman: (halaman: number) => void
+}) {
   // Daftar gudang dari API. Awalnya kosong sampai data tiba.
   const [daftar, setDaftar] = useState<Warehouse[]>([])
+
+  // Jumlah halaman dari meta API. Null berarti API belum mengirim meta, jadi
+  // jumlah halaman tidak diketahui dan tombol halaman tidak ditampilkan.
+  const [totalHalaman, setTotalHalaman] = useState<number | null>(null)
 
   // Kondisi awal "memuat" supaya skeleton langsung tampil.
   const [kondisi, setKondisi] = useState<Kondisi>("memuat")
@@ -83,13 +109,25 @@ function DataDaftar({ status }: { status: StatusDaftar }) {
     // atau efek berjalan ulang sebelum jawaban API tiba.
     let dibatalkan = false
 
-    // Status dikirim ke API sebagai parameter alamat (?status=archived).
-    ambilDaftarGudang({ status })
+    // Kata kunci, status, dan halaman dikirim ke API sebagai parameter alamat
+    // (?search=...&status=archived&page=2&per_page=10).
+    // Backend mencari di kolom code dan name.
+    ambilDaftarGudang({
+      search,
+      status,
+      page: halaman,
+      per_page: BARIS_PER_HALAMAN,
+    })
       .then((respons) => {
         if (dibatalkan) return
 
         // "?? []" berarti pakai daftar kosong kalau data bernilai null atau tidak ada.
         setDaftar(respons.data ?? [])
+
+        // "?." membaca meta dengan aman. Tipe kita menjanjikan meta selalu ada,
+        // tetapi TypeScript tidak memeriksa isi jawaban saat berjalan. Tanpa meta
+        // hasilnya null.
+        setTotalHalaman(respons.meta?.total_pages ?? null)
         setKondisi("berhasil")
       })
       .catch((galat: unknown) => {
@@ -102,7 +140,7 @@ function DataDaftar({ status }: { status: StatusDaftar }) {
     return () => {
       dibatalkan = true
     }
-  }, [percobaan, status])
+  }, [percobaan, search, status, halaman])
 
   // Dipanggil tombol "Coba lagi": tampilkan skeleton lagi, lalu picu efek ulang.
   function cobaLagi() {
@@ -147,11 +185,28 @@ function DataDaftar({ status }: { status: StatusDaftar }) {
         </div>
       )}
 
-      {/* Kondisi kosong. Dua keadaan berbeda: filter Arsip atau Semua yang tidak
-          ada isinya, atau memang belum ada gudang aktif. */}
+      {/* Kondisi kosong. Empat keadaan berbeda, dari yang paling khusus: halaman
+          di luar jangkauan, hasil pencarian kosong, filter Arsip atau Semua yang
+          tidak ada isinya, atau memang belum ada gudang aktif. */}
       {kondisi === "berhasil" && daftar.length === 0 && (
         <div className="space-y-4 rounded-md border p-6 text-center">
-          {status !== "active" ? (
+          {totalHalaman !== null && halaman > Math.max(totalHalaman, 1) ? (
+            // Hanya berlaku kalau jumlah halaman diketahui (meta ada). Terjadi kalau
+            // alamat diketik sembarangan, atau setelah mengarsipkan data terakhir
+            // di halaman terakhir.
+            <>
+              <p className="text-sm">
+                Halaman {halaman} tidak ada. Hanya ada {Math.max(totalHalaman, 1)} halaman.
+              </p>
+              <Button variant="outline" onClick={() => onUbahHalaman(1)}>
+                Kembali ke halaman 1
+              </Button>
+            </>
+          ) : search !== "" ? (
+            <p className="text-sm">
+              Tidak ada gudang yang cocok dengan pencarian &quot;{search}&quot;.
+            </p>
+          ) : status !== "active" ? (
             <p className="text-sm">Tidak ada gudang dengan status ini.</p>
           ) : (
             <>
@@ -174,6 +229,19 @@ function DataDaftar({ status }: { status: StatusDaftar }) {
         />
       )}
 
+      {/* Navigasi halaman. Hanya tampil kalau jumlah halaman diketahui dan lebih
+          dari satu. Selama API belum mengirim meta, bagian ini tidak tampil. */}
+      {kondisi === "berhasil" &&
+        daftar.length > 0 &&
+        totalHalaman !== null &&
+        totalHalaman > 1 && (
+          <WarehousePagination
+            halaman={halaman}
+            totalHalaman={totalHalaman}
+            onUbahHalaman={onUbahHalaman}
+          />
+        )}
+
       {/* Dialog konfirmasi arsip. Terbuka selama ada gudang yang dipilih. */}
       <DialogArsipGudang
         gudang={gudangAkanDiarsipkan}
@@ -185,14 +253,16 @@ function DataDaftar({ status }: { status: StatusDaftar }) {
   )
 }
 
-// Bagian yang membaca alamat. Status disimpan di alamat (misalnya
-// /warehouses?status=archived) supaya tetap ada saat halaman dimuat ulang atau
-// alamatnya dibagikan, sesuai brief.
+// Bagian yang membaca alamat. Kata kunci, status, dan halaman disimpan di alamat
+// (misalnya /warehouses?search=gdg&status=archived&page=2) supaya tetap ada saat
+// halaman dimuat ulang atau alamatnya dibagikan, sesuai brief.
 function IsiHalaman() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
+  const search = searchParams.get("search") ?? ""
   const status = bacaStatus(searchParams.get("status"))
+  const halaman = bacaHalaman(searchParams.get("page"))
 
   // Mengubah parameter alamat. Nilai null atau teks kosong berarti parameter itu
   // dihapus dari alamat, jadi alamat tetap bersih. Parameter lain dibiarkan.
@@ -210,6 +280,11 @@ function IsiHalaman() {
     const teks = baru.toString()
     // push menambah riwayat, jadi tombol Kembali di peramban kembali ke keadaan sebelumnya.
     router.push(teks === "" ? "/warehouses" : `/warehouses?${teks}`)
+  }
+
+  // Pindah halaman. Halaman 1 adalah bawaan, jadi tidak ditulis di alamat.
+  function pindahHalaman(tujuan: number) {
+    ubahParameter({ page: tujuan === 1 ? null : String(tujuan) })
   }
 
   return (
@@ -231,17 +306,30 @@ function IsiHalaman() {
         </Link>
       </div>
 
-      {/* Tombol filter di atas tabel. "active" adalah bawaan, jadi tidak ditulis
-          di alamat supaya alamat tetap bersih. */}
+      {/* Kotak cari dan tombol filter di atas tabel. Kata kunci kosong dan status
+          "active" dihapus dari alamat supaya alamat tetap bersih (lihat ubahParameter).
+          Mencari atau mengganti status juga menghapus page, supaya kembali ke halaman 1.
+          key berisi kata kunci: kalau alamat berubah (misalnya lewat tombol Kembali),
+          kotak cari dibuat ulang dan teksnya mengikuti alamat. */}
       <WarehouseToolbar
+        key={search}
+        search={search}
         status={status}
+        onCari={(kataKunci) => ubahParameter({ search: kataKunci, page: null })}
         onUbahStatus={(nilai) =>
-          ubahParameter({ status: nilai === "active" ? null : nilai })
+          ubahParameter({ status: nilai === "active" ? null : nilai, page: null })
         }
       />
 
-      {/* key berisi status: setiap status berubah, DataDaftar dimulai dari awal. */}
-      <DataDaftar key={status} status={status} />
+      {/* key berisi kata kunci, status, dan halaman: setiap salah satunya berubah,
+          DataDaftar dimulai dari awal. */}
+      <DataDaftar
+        key={`${search}|${status}|${halaman}`}
+        search={search}
+        status={status}
+        halaman={halaman}
+        onUbahHalaman={pindahHalaman}
+      />
     </div>
   )
 }

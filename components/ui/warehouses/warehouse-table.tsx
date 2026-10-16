@@ -1,5 +1,7 @@
+import Link from "next/link"
+
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import {
   Table,
   TableBody,
@@ -9,6 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import type { Warehouse } from "@/lib/types"
+import { cn } from "@/lib/utils"
 
 // Props: data dan aksi yang diberikan halaman induk.
 // - warehouses: daftar gudang yang ditampilkan.
@@ -73,10 +76,17 @@ export function WarehouseTable({
                       </Button>
                     ) : (
                       <>
-                        {/* Belum berfungsi. Halaman ubah dibuat di Pull Request lain. */}
-                        <Button variant="outline" size="sm">
+                        {/* Menuju halaman ubah. Button shadcn di proyek ini tidak punya
+                            asChild, jadi tautan dibuat tampak seperti tombol lewat
+                            buttonVariants, dibungkus cn(...) supaya bingkainya tampil. */}
+                        <Link
+                          href={`/warehouses/${gudang.id}/edit`}
+                          className={cn(
+                            buttonVariants({ variant: "outline", size: "sm" })
+                          )}
+                        >
                           Ubah
-                        </Button>
+                        </Link>
                         <Button
                           variant="destructive"
                           size="sm"
