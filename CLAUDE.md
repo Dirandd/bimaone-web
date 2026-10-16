@@ -12,7 +12,7 @@ Semua label, pesan di layar, komentar kode, pesan commit, dan deskripsi Pull Req
 Pilihan ini tidak boleh diganti tanpa izin mentor, termasuk kalau asisten AI menyarankan pustaka lain.
 - Next.js (App Router) dengan TypeScript
 - Tailwind CSS dan komponen shadcn/ui untuk form, tabel, dialog, dan notifikasi
-- Pemanggilan API memakai fetch lewat satu berkas, lib/apiclient.ts
+- Pemanggilan API memakai fetch lewat satu berkas, lib/api-client.ts
 - Alamat dasar API dibaca dari NEXT_PUBLIC_API_URL
 - Git dan GitHub, dua repositori: bimaone-api dan bimaone-web
 

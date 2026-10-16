@@ -12,7 +12,7 @@ import { Button, buttonVariants } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { BrandForm } from "@/components/ui/brands/brand-form"
 import { ambilBrand, ubahBrand, type DataBrand } from "@/lib/api/brands"
-import { GalatApi, GalatJaringan } from "@/lib/apiclient"
+import { GalatApi, GalatJaringan } from "@/lib/api-client"
 import type { Brand } from "@/lib/types"
 // cn dipakai pada tautan bertampilan tombol supaya bingkai varian outline tampil,
 // sama seperti tombol Batal di BrandForm.
