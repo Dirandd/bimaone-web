@@ -18,7 +18,11 @@ import {
   WarehouseToolbar,
   type StatusDaftar,
 } from "@/components/ui/warehouses/warehouse-toolbar"
-import { ambilDaftarGudang, arsipkanGudang } from "@/lib/api/warehouses"
+import {
+  ambilDaftarGudang,
+  arsipkanGudang,
+  pulihkanGudang,
+} from "@/lib/api/warehouses"
 import { GalatApi, GalatJaringan } from "@/lib/apiclient"
 import type { Warehouse } from "@/lib/types"
 
@@ -101,7 +105,7 @@ function DataDaftar({
   // Gudang yang sedang menunggu konfirmasi arsip. Null berarti dialog tertutup.
   const [gudangAkanDiarsipkan, setGudangAkanDiarsipkan] = useState<Warehouse | null>(null)
 
-  // Id gudang yang sedang diarsipkan. Null kalau tidak ada.
+  // Id gudang yang sedang diarsipkan atau dipulihkan. Null kalau tidak ada.
   const [idSedangDiproses, setIdSedangDiproses] = useState<number | null>(null)
 
   useEffect(() => {
@@ -170,6 +174,24 @@ function DataDaftar({
     }
   }
 
+  // Dipanggil tombol "Pulihkan" di tabel. Brief hanya mewajibkan konfirmasi untuk
+  // arsip, jadi pulihkan langsung berjalan tanpa dialog.
+  async function pulihkan(gudang: Warehouse) {
+    setIdSedangDiproses(gudang.id)
+    try {
+      await pulihkanGudang(gudang.id)
+      toast.success("Gudang berhasil dipulihkan")
+
+      // Muat ulang daftar tanpa menampilkan skeleton, supaya tabel tidak berkedip.
+      setPercobaan((nilai) => nilai + 1)
+    } catch (galat: unknown) {
+      toast.error(pesanDariGalat(galat))
+    } finally {
+      // Selalu dijalankan, berhasil atau gagal, supaya tombol aktif kembali.
+      setIdSedangDiproses(null)
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Kondisi memuat: skeleton menggantikan tabel. */}
@@ -225,6 +247,7 @@ function DataDaftar({
         <WarehouseTable
           warehouses={daftar}
           onArsipkan={setGudangAkanDiarsipkan}
+          onPulihkan={pulihkan}
           idSedangDiproses={idSedangDiproses}
         />
       )}

@@ -17,19 +17,22 @@ import { cn } from "@/lib/utils"
 // - warehouses: daftar gudang yang ditampilkan.
 // - onArsipkan: dipanggil saat tombol Arsipkan diklik. Tabel tidak memanggil API
 //   sendiri. Halaman yang memutuskan apa yang terjadi (membuka dialog, memanggil API).
-// - idSedangDiproses: id gudang yang sedang diarsipkan, supaya tombol di baris itu
-//   nonaktif dan tidak terklik dua kali. Null kalau tidak ada yang diproses.
+// - onPulihkan: dipanggil saat tombol Pulihkan diklik, dengan aturan yang sama.
+// - idSedangDiproses: id gudang yang sedang diarsipkan atau dipulihkan, supaya tombol
+//   di baris itu nonaktif dan tidak terklik dua kali. Null kalau tidak ada yang diproses.
 // Komponen ini ikut berjalan di peramban karena diimpor oleh halaman yang memakai
 // "use client", jadi tidak perlu menulisnya lagi di sini.
 type WarehouseTableProps = {
   warehouses: Warehouse[]
   onArsipkan: (gudang: Warehouse) => void
+  onPulihkan: (gudang: Warehouse) => void
   idSedangDiproses: number | null
 }
 
 export function WarehouseTable({
   warehouses,
   onArsipkan,
+  onPulihkan,
   idSedangDiproses,
 }: WarehouseTableProps) {
   return (
@@ -70,9 +73,13 @@ export function WarehouseTable({
                   <div className="flex justify-end gap-2">
                     {/* Aktif: tombol Ubah dan Arsipkan. Arsip: tombol Pulihkan. */}
                     {diarsipkan ? (
-                      // Belum berfungsi. Pulihkan dibuat di langkah berikutnya.
-                      <Button variant="outline" size="sm">
-                        Pulihkan
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={sedangDiproses}
+                        onClick={() => onPulihkan(gudang)}
+                      >
+                        {sedangDiproses ? "Memulihkan..." : "Pulihkan"}
                       </Button>
                     ) : (
                       <>
