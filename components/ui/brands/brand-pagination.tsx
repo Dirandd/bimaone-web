@@ -1,7 +1,9 @@
-// Navigasi halaman di bawah tabel: tombol Sebelumnya, keterangan halaman, dan
+// Navigasi halaman di bawah tabel: keterangan halaman, tombol Sebelumnya, dan
 // tombol Berikutnya. Komponen ini hanya melaporkan halaman yang dipilih lewat props.
 // Alamat diubah oleh halaman, bukan di sini. Tidak perlu "use client" sendiri karena
 // diimpor oleh halaman yang sudah berjalan di peramban.
+
+import { ChevronLeft, ChevronRight } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 
@@ -26,6 +28,11 @@ export function BrandPagination({
       aria-label="Navigasi halaman"
       className="flex items-center justify-end gap-3"
     >
+      {/* Keterangan halaman di kiri, berwarna redup seperti di Gudang. */}
+      <span className="text-sm text-muted-foreground">
+        Halaman {halaman} dari {totalHalaman}
+      </span>
+
       {/* Di halaman pertama tombol Sebelumnya nonaktif, di halaman terakhir
           tombol Berikutnya nonaktif. */}
       <Button
@@ -34,13 +41,9 @@ export function BrandPagination({
         disabled={halaman <= 1}
         onClick={() => onUbahHalaman(halaman - 1)}
       >
+        <ChevronLeft />
         Sebelumnya
       </Button>
-
-      <span className="text-sm">
-        Halaman {halaman} dari {totalHalaman}
-      </span>
-
       <Button
         variant="outline"
         size="sm"
@@ -48,6 +51,7 @@ export function BrandPagination({
         onClick={() => onUbahHalaman(halaman + 1)}
       >
         Berikutnya
+        <ChevronRight />
       </Button>
     </nav>
   )
