@@ -9,7 +9,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@/components/table"
 import type { Warehouse } from "@/lib/types"
 import { cn } from "@/lib/utils"
 

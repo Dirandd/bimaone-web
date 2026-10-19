@@ -11,13 +11,13 @@ import { toast } from "sonner"
 
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { DialogArsipGudang } from "@/components/ui/warehouses/dialog-arsip-gudang"
-import { WarehousePagination } from "@/components/ui/warehouses/warehouse-pagination"
-import { WarehouseTable } from "@/components/ui/warehouses/warehouse-table"
+import { DialogArsipGudang } from "@/components/warehouses/dialog-arsip-gudang"
+import { WarehousePagination } from "@/components/warehouses/warehouse-pagination"
+import { WarehouseTable } from "@/components/warehouses/warehouse-table"
 import {
   WarehouseToolbar,
   type StatusDaftar,
-} from "@/components/ui/warehouses/warehouse-toolbar"
+} from "@/components/warehouses/warehouse-toolbar"
 import {
   ambilDaftarGudang,
   arsipkanGudang,

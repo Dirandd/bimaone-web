@@ -5,7 +5,7 @@
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 
-import { WarehouseForm } from "@/components/ui/warehouses/warehouse-form"
+import { WarehouseForm } from "@/components/warehouses/warehouse-form"
 import { tambahGudang, type DataGudang } from "@/lib/api/warehouses"
 
 export default function HalamanTambahGudang() {

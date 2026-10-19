@@ -10,7 +10,7 @@ import { toast } from "sonner"
 
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { BrandForm } from "@/components/ui/brands/brand-form"
+import { BrandForm } from "@/components/brands/brand-form"
 import { ambilBrand, ubahBrand, type DataBrand } from "@/lib/api/brands"
 import { GalatApi, GalatJaringan } from "@/lib/api-client"
 import type { Brand } from "@/lib/types"

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { AppSidebar } from "@/components/ui/app-sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
 // Tempat notifikasi (toast) dari sonner. Dipasang sekali di sini supaya semua halaman
 // bisa memanggil toast.success(...) dan sejenisnya.
 import { Toaster } from "@/components/ui/sonner";

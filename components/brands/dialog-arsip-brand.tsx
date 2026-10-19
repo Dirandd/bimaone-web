@@ -11,31 +11,31 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import type { Warehouse } from "@/lib/types"
+} from "@/components/dialog"
+import type { Brand } from "@/lib/types"
 
 // Props:
-// - gudang: gudang yang akan diarsipkan. Null berarti dialog tertutup.
+// - brand: brand yang akan diarsipkan. Null berarti dialog tertutup.
 // - sedangMemproses: benar selama permintaan ke API berjalan.
 // - onBatal: dipanggil saat pengguna membatalkan.
 // - onKonfirmasi: dipanggil saat pengguna menekan Arsipkan.
-type DialogArsipGudangProps = {
-  gudang: Warehouse | null
+type DialogArsipBrandProps = {
+  brand: Brand | null
   sedangMemproses: boolean
   onBatal: () => void
   onKonfirmasi: () => void
 }
 
-export function DialogArsipGudang({
-  gudang,
+export function DialogArsipBrand({
+  brand,
   sedangMemproses,
   onBatal,
   onKonfirmasi,
-}: DialogArsipGudangProps) {
+}: DialogArsipBrandProps) {
   return (
     <Dialog
-      // Dialog terbuka selama ada gudang yang dipilih.
-      open={gudang !== null}
+      // Dialog terbuka selama ada brand yang dipilih.
+      open={brand !== null}
       onOpenChange={(buka) => {
         // Dipanggil saat dialog ditutup lewat tombol Esc atau klik di luar kotak.
         // Selama permintaan berjalan, penutupan diabaikan supaya tidak membingungkan.
@@ -44,11 +44,10 @@ export function DialogArsipGudang({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Arsipkan gudang?</DialogTitle>
+          <DialogTitle>Arsipkan brand?</DialogTitle>
           <DialogDescription>
-            Gudang <strong>{gudang?.name}</strong> ({gudang?.code}) akan dipindahkan
-            ke arsip dan tidak tampil di daftar aktif. Data tidak dihapus dan bisa
-            dipulihkan kapan saja.
+            Brand <strong>{brand?.name}</strong> akan dipindahkan ke arsip dan tidak
+            tampil di daftar aktif. Data tidak dihapus dan bisa dipulihkan kapan saja.
           </DialogDescription>
         </DialogHeader>
 
