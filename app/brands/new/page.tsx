@@ -5,7 +5,7 @@
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 
-import { BrandForm } from "@/components/ui/brands/brand-form"
+import { BrandForm } from "@/components/brands/brand-form"
 import { tambahBrand, type DataBrand } from "@/lib/api/brands"
 
 export default function HalamanTambahBrand() {

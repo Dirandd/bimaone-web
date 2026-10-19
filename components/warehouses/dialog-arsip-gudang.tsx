@@ -11,31 +11,31 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import type { Brand } from "@/lib/types"
+} from "@/components/dialog"
+import type { Warehouse } from "@/lib/types"
 
 // Props:
-// - brand: brand yang akan diarsipkan. Null berarti dialog tertutup.
+// - gudang: gudang yang akan diarsipkan. Null berarti dialog tertutup.
 // - sedangMemproses: benar selama permintaan ke API berjalan.
 // - onBatal: dipanggil saat pengguna membatalkan.
 // - onKonfirmasi: dipanggil saat pengguna menekan Arsipkan.
-type DialogArsipBrandProps = {
-  brand: Brand | null
+type DialogArsipGudangProps = {
+  gudang: Warehouse | null
   sedangMemproses: boolean
   onBatal: () => void
   onKonfirmasi: () => void
 }
 
-export function DialogArsipBrand({
-  brand,
+export function DialogArsipGudang({
+  gudang,
   sedangMemproses,
   onBatal,
   onKonfirmasi,
-}: DialogArsipBrandProps) {
+}: DialogArsipGudangProps) {
   return (
     <Dialog
-      // Dialog terbuka selama ada brand yang dipilih.
-      open={brand !== null}
+      // Dialog terbuka selama ada gudang yang dipilih.
+      open={gudang !== null}
       onOpenChange={(buka) => {
         // Dipanggil saat dialog ditutup lewat tombol Esc atau klik di luar kotak.
         // Selama permintaan berjalan, penutupan diabaikan supaya tidak membingungkan.
@@ -44,10 +44,11 @@ export function DialogArsipBrand({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Arsipkan brand?</DialogTitle>
+          <DialogTitle>Arsipkan gudang?</DialogTitle>
           <DialogDescription>
-            Brand <strong>{brand?.name}</strong> akan dipindahkan ke arsip dan tidak
-            tampil di daftar aktif. Data tidak dihapus dan bisa dipulihkan kapan saja.
+            Gudang <strong>{gudang?.name}</strong> ({gudang?.code}) akan dipindahkan
+            ke arsip dan tidak tampil di daftar aktif. Data tidak dihapus dan bisa
+            dipulihkan kapan saja.
           </DialogDescription>
         </DialogHeader>
 

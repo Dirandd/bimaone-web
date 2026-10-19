@@ -10,7 +10,7 @@ import { toast } from "sonner"
 
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { WarehouseForm } from "@/components/ui/warehouses/warehouse-form"
+import { WarehouseForm } from "@/components/warehouses/warehouse-form"
 import { ambilGudang, ubahGudang, type DataGudang } from "@/lib/api/warehouses"
 import { GalatApi, GalatJaringan } from "@/lib/api-client"
 import type { Warehouse } from "@/lib/types"
