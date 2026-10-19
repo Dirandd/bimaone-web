@@ -43,3 +43,6 @@ next-env.d.ts
 
 # Berkas petunjuk untuk alat AI, dibuat otomatis oleh Next.js
 AGENTS.md
+
+# notes pribadi
+NOTES.md

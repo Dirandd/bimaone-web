@@ -25,67 +25,70 @@ export function BrandTable({
   idSedangDiproses,
 }: BrandTableProps) {
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Nama</TableHead>
-          <TableHead>Deskripsi</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead className="text-right">Aksi</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {brands.map((brand) => {
-          // Baris ini sedang diproses kalau id-nya sama dengan idSedangDiproses.
-          const sedangDiproses = idSedangDiproses === brand.id
+    // Bingkai bulat di sekeliling tabel, sama dengan tabel Gudang.
+    <div className="rounded-lg border">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Nama</TableHead>
+            <TableHead>Deskripsi</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead className="text-right">Aksi</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {brands.map((brand) => {
+            // Baris ini sedang diproses kalau id-nya sama dengan idSedangDiproses.
+            const sedangDiproses = idSedangDiproses === brand.id
 
-          return (
-            <TableRow key={brand.id}>
-              <TableCell className="font-medium">{brand.name}</TableCell>
-              <TableCell>{brand.description ?? "-"}</TableCell>
-              <TableCell>
-                <Badge variant={brand.archived_at === null ? "default" : "secondary"}>
-                  {brand.archived_at === null ? "Aktif" : "Arsip"}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                <div className="flex justify-end gap-2">
-                  {/* Ubah: tautan ke halaman ubah. Button shadcn di proyek
-                      ini tidak punya asChild, jadi tautan dibuat tampak seperti tombol
-                      lewat buttonVariants, dibungkus cn supaya bingkainya tampil. */}
-                  <Link
-                    href={`/brands/${brand.id}/edit`}
-                    className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
-                  >
-                    Ubah
-                  </Link>
+            return (
+              <TableRow key={brand.id}>
+                <TableCell className="font-medium">{brand.name}</TableCell>
+                <TableCell>{brand.description ?? "-"}</TableCell>
+                <TableCell>
+                  <Badge variant={brand.archived_at === null ? "default" : "secondary"}>
+                    {brand.archived_at === null ? "Aktif" : "Arsip"}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <div className="flex justify-end gap-2">
+                    {/* Ubah: tautan ke halaman ubah. Button shadcn di proyek
+                        ini tidak punya asChild, jadi tautan dibuat tampak seperti tombol
+                        lewat buttonVariants, dibungkus cn supaya bingkainya tampil. */}
+                    <Link
+                      href={`/brands/${brand.id}/edit`}
+                      className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+                    >
+                      Ubah
+                    </Link>
 
-                  {/* Aktif: tombol Arsipkan. Arsip: tombol Pulihkan. */}
-                  {brand.archived_at === null ? (
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      disabled={sedangDiproses}
-                      onClick={() => onArsipkan(brand)}
-                    >
-                      Arsipkan
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={sedangDiproses}
-                      onClick={() => onPulihkan(brand)}
-                    >
-                      {sedangDiproses ? "Memulihkan..." : "Pulihkan"}
-                    </Button>
-                  )}
-                </div>
-              </TableCell>
-            </TableRow>
-          )
-        })}
-      </TableBody>
-    </Table>
+                    {/* Aktif: tombol Arsipkan. Arsip: tombol Pulihkan. */}
+                    {brand.archived_at === null ? (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        disabled={sedangDiproses}
+                        onClick={() => onArsipkan(brand)}
+                      >
+                        Arsipkan
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={sedangDiproses}
+                        onClick={() => onPulihkan(brand)}
+                      >
+                        {sedangDiproses ? "Memulihkan..." : "Pulihkan"}
+                      </Button>
+                    )}
+                  </div>
+                </TableCell>
+              </TableRow>
+            )
+          })}
+        </TableBody>
+      </Table>
+    </div>
   )
 }
