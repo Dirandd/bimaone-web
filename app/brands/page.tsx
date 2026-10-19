@@ -4,6 +4,7 @@
 // pembaca alamat (useSearchParams). Semuanya hanya berjalan di peramban.
 
 import Link from "next/link"
+import { Plus } from "lucide-react"
 import { Suspense, useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { toast } from "sonner"
@@ -221,6 +222,7 @@ function DataDaftar({
             <>
               <p className="text-sm">Belum ada brand.</p>
               <Link href="/brands/new" className={buttonVariants()}>
+                <Plus />
                 Tambah Brand
               </Link>
             </>
@@ -299,12 +301,19 @@ function IsiHalaman() {
   return (
     <div className="space-y-6">
       {/* Judul di kiri, tombol tambah di kanan. Tetap tampil di semua kondisi. */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Brand</h1>
+      <div className="flex items-center justify-between gap-4">
+        {/* Judul dan keterangan singkat halaman, disusun sama dengan halaman Gudang. */}
+        <div>
+          <h1 className="text-2xl font-bold">Brand</h1>
+          <p className="text-sm text-muted-foreground">
+            Kelola data master brand BIMAONE.
+          </p>
+        </div>
 
         {/* Button shadcn di proyek ini tidak punya asChild, jadi tautan dibuat
             tampak seperti tombol lewat buttonVariants. */}
         <Link href="/brands/new" className={buttonVariants()}>
+          <Plus />
           Tambah Brand
         </Link>
       </div>

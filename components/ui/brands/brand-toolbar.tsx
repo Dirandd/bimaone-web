@@ -5,6 +5,7 @@
 // dan menangani aksi klik.
 
 import { useState, type FormEvent } from "react"
+import { Search } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -24,6 +25,7 @@ const PILIHAN_STATUS: { nilai: StatusDaftar; label: string }[] = [
 
 // Props:
 // - search dan status: nilai yang sedang berlaku, dibaca halaman dari alamat.
+//   search juga dipakai untuk memutuskan perlu tidaknya tombol Reset.
 // - onCari dan onUbahStatus: dipanggil saat pengguna mencari atau memilih status.
 //   Komponen ini tidak mengubah alamat sendiri. Halaman yang memutuskannya.
 type BrandToolbarProps = {
@@ -51,23 +53,42 @@ export function BrandToolbar({
     onCari(teks.trim())
   }
 
+  // Mengosongkan kotak cari dan menghapus kata kunci dari alamat.
+  function hapusPencarian() {
+    setTeks("")
+    onCari("")
+  }
+
   return (
     // flex-wrap supaya kotak cari dan tombol status turun ke baris baru di layar sempit.
     <div className="flex flex-wrap items-center justify-between gap-3">
-      <form onSubmit={kirim} className="flex gap-2">
+      {/* Kiri: kotak cari. Dibungkus form supaya tombol Enter juga mengirim pencarian.
+          Lebarnya dibatasi max-w-sm, sama dengan toolbar Gudang. */}
+      <form
+        onSubmit={kirim}
+        role="search"
+        className="flex w-full max-w-sm items-center gap-2"
+      >
         <Input
           value={teks}
           onChange={(event) => setTeks(event.target.value)}
           placeholder="Cari nama brand..."
           aria-label="Cari nama brand"
-          className="w-64"
         />
-        <Button type="submit" variant="outline">
+        <Button type="submit">
+          <Search />
           Cari
         </Button>
+        {/* Reset hanya tampil kalau ada pencarian yang sedang berlaku. */}
+        {search !== "" && (
+          <Button type="button" variant="ghost" onClick={hapusPencarian}>
+            Reset
+          </Button>
+        )}
       </form>
 
-      <div className="flex gap-2" role="group" aria-label="Filter status">
+      {/* Kanan: tombol filter status. */}
+      <div role="group" aria-label="Filter status brand" className="flex gap-2">
         {PILIHAN_STATUS.map((pilihan) => {
           const aktif = status === pilihan.nilai
           return (
