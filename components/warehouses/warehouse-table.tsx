@@ -60,8 +60,10 @@ export function WarehouseTable({
             return (
               <TableRow key={gudang.id}>
                 <TableCell className="font-mono">{gudang.code}</TableCell>
-                <TableCell className="font-medium">{gudang.name}</TableCell>
-                <TableCell>{gudang.address ?? "-"}</TableCell>
+                <TableCell className="max-w-[18ch] truncate font-medium">{gudang.name}</TableCell>
+                <TableCell className="w-full max-w-0 truncate">
+                  {gudang.address ?? "-"}
+                </TableCell>
                 <TableCell>{gudang.pic_name ?? "-"}</TableCell>
                 <TableCell>{gudang.phone ?? "-"}</TableCell>
                 <TableCell>
