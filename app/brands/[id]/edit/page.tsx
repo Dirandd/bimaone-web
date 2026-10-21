@@ -18,9 +18,12 @@ import type { Brand } from "@/lib/types"
 // sama seperti tombol Batal di BrandForm.
 import { cn } from "@/lib/utils"
 
-// Empat kondisi halaman. Brief mensyaratkan memuat, galat, dan berhasil. "Tidak
-// ditemukan" ditambahkan karena brand yang diminta bisa saja tidak ada.
-type Kondisi = "memuat" | "berhasil" | "tidak-ditemukan" | "galat"
+// Kondisi halaman. Brief mensyaratkan memuat, galat, dan berhasil. "Tidak ditemukan"
+// ditambahkan karena brand yang diminta bisa saja tidak ada. "Diarsipkan" ditambahkan
+// karena brand arsip tidak boleh diubah: tombol Ubah sudah disembunyikan di daftar,
+// tetapi alamat /brands/3/edit masih bisa diketik langsung, jadi halaman ini
+// menolaknya juga.
+type Kondisi = "memuat" | "berhasil" | "tidak-ditemukan" | "diarsipkan" | "galat"
 
 // Mengambil pesan yang aman ditampilkan dari sebuah galat. Galat lain diganti pesan
 // umum supaya detail teknis tidak bocor ke layar. Fungsi yang sama ada di halaman
@@ -67,7 +70,10 @@ export default function HalamanUbahBrand() {
       .then((respons) => {
         if (dibatalkan) return
         setBrand(respons.data)
-        setKondisi("berhasil")
+
+        // Brand yang sudah diarsipkan (archived_at terisi) tidak ditampilkan di
+        // form. Pengguna diminta memulihkannya dulu dari daftar.
+        setKondisi(respons.data.archived_at === null ? "berhasil" : "diarsipkan")
       })
       .catch((galat: unknown) => {
         if (dibatalkan) return
@@ -133,6 +139,21 @@ export default function HalamanUbahBrand() {
           <p className="text-sm">Brand tidak ditemukan.</p>
           <Link href="/brands" className={cn(buttonVariants({ variant: "outline" }))}>
             Kembali ke daftar
+          </Link>
+        </div>
+      )}
+
+      {/* Kondisi diarsipkan: brand ada, tetapi sudah diarsipkan jadi tidak bisa diubah. */}
+      {kondisi === "diarsipkan" && (
+        <div className="space-y-4 rounded-md border p-6 text-center">
+          <p className="text-sm">
+            Brand yang sudah diarsipkan tidak bisa diubah. Pulihkan dulu dari daftar.
+          </p>
+          <Link
+            href="/brands?status=archived"
+            className={cn(buttonVariants({ variant: "outline" }))}
+          >
+            Kembali ke daftar arsip
           </Link>
         </div>
       )}
