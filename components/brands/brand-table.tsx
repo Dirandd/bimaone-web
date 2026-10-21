@@ -44,7 +44,9 @@ export function BrandTable({
             return (
               <TableRow key={brand.id}>
                 <TableCell className="font-medium">{brand.name}</TableCell>
-                <TableCell>{brand.description ?? "-"}</TableCell>
+                <TableCell className="w-full max-w-0 truncate">
+                  {brand.description ?? "-"}
+                </TableCell>
                 <TableCell>
                   <Badge variant={brand.archived_at === null ? "default" : "secondary"}>
                     {brand.archived_at === null ? "Aktif" : "Arsip"}
