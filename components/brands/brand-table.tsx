@@ -43,7 +43,9 @@ export function BrandTable({
 
             return (
               <TableRow key={brand.id}>
-                <TableCell className="font-medium">{brand.name}</TableCell>
+                <TableCell className="max-w-[18ch] truncate font-medium">
+                  {brand.name}
+                </TableCell>
                 <TableCell className="w-full max-w-0 truncate">
                   {brand.description ?? "-"}
                 </TableCell>
