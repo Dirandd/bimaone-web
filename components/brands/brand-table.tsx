@@ -52,26 +52,28 @@ export function BrandTable({
                 </TableCell>
                 <TableCell>
                   <div className="flex justify-end gap-2">
-                    {/* Ubah: tautan ke halaman ubah. Button shadcn di proyek
-                        ini tidak punya asChild, jadi tautan dibuat tampak seperti tombol
-                        lewat buttonVariants, dibungkus cn supaya bingkainya tampil. */}
-                    <Link
-                      href={`/brands/${brand.id}/edit`}
-                      className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
-                    >
-                      Ubah
-                    </Link>
-
-                    {/* Aktif: tombol Arsipkan. Arsip: tombol Pulihkan. */}
+                    {/* Brand aktif: tombol Ubah dan Arsipkan. Brand diarsipkan: hanya
+                        Pulihkan, karena data arsip tidak boleh diubah sebelum dipulihkan.
+                        Ubah berupa tautan. Button shadcn di proyek ini tidak punya
+                        asChild, jadi tautan dibuat tampak seperti tombol lewat
+                        buttonVariants, dibungkus cn supaya bingkainya tampil. */}
                     {brand.archived_at === null ? (
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        disabled={sedangDiproses}
-                        onClick={() => onArsipkan(brand)}
-                      >
-                        Arsipkan
-                      </Button>
+                      <>
+                        <Link
+                          href={`/brands/${brand.id}/edit`}
+                          className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+                        >
+                          Ubah
+                        </Link>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          disabled={sedangDiproses}
+                          onClick={() => onArsipkan(brand)}
+                        >
+                          Arsipkan
+                        </Button>
+                      </>
                     ) : (
                       <Button
                         variant="outline"
