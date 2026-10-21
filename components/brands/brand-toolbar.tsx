@@ -63,18 +63,25 @@ export function BrandToolbar({
     // flex-wrap supaya kotak cari dan tombol status turun ke baris baru di layar sempit.
     <div className="flex flex-wrap items-center justify-between gap-3">
       {/* Kiri: kotak cari. Dibungkus form supaya tombol Enter juga mengirim pencarian.
-          Lebarnya dibatasi max-w-sm, sama dengan toolbar Gudang. */}
+          Form tidak diberi lebar tetap. Lebar kotak cari dipegang pembungkus Input
+          (w-80), jadi saat tombol Reset muncul, form yang melebar ke kanan dan
+          kotak cari tetap sepanjang semula. max-w-full supaya tidak keluar dari
+          layar sempit. */}
       <form
         onSubmit={kirim}
         role="search"
-        className="flex w-full max-w-sm items-center gap-2"
+        className="flex max-w-full items-center gap-2"
       >
-        <Input
-          value={teks}
-          onChange={(event) => setTeks(event.target.value)}
-          placeholder="Cari nama brand..."
-          aria-label="Cari nama brand"
-        />
+        {/* Pembungkus ini yang menentukan panjang kotak cari. shrink supaya
+            tetap boleh mengecil kalau layarnya memang terlalu sempit. */}
+        <div className="w-80 min-w-0 shrink">
+          <Input
+            value={teks}
+            onChange={(event) => setTeks(event.target.value)}
+            placeholder="Cari nama brand..."
+            aria-label="Cari nama brand"
+          />
+        </div>
         <Button type="submit">
           <Search />
           Cari
